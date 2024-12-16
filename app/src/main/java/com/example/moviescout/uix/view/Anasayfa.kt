@@ -23,7 +23,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
@@ -90,6 +92,9 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
     val movieSuggestList by anasayfaViewModel.movieSuggestList.observeAsState(emptyList())
     val errorMessage by anasayfaViewModel.errorMessage.observeAsState("")
 
+    // Kaydırma durumunu hatırlamak için bir ScrollState kullanıyoruz
+    val scrollState = rememberScrollState()
+
     // Fetch news whenever the selected category changes
     LaunchedEffect(Unit) {
         anasayfaViewModel.fetchMovieSuggest()
@@ -130,15 +135,43 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
 
     ) { paddingValues ->
         // Ana arayüz alanı
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(0.dp)
+            ,
+        ) {
             // Ana içerik
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(0.dp),
+                    ,
 
-            ) {
+                ) {
                 FilmLazyRow(movieSuggestList)
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = Color.Black)
+
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(100.dp)
+                            .background(color = Color.Black)
+                    ) {
+                        Text(text = "dsadsad",color = Color.White)
+                        Text(text = "dsadsad",color = Color.White)
+                        Text(text = "dsadsad",color = Color.White)
+                        Text(text = "dsadsad",color = Color.White)
+                        Text(text = "dsadsad",color = Color.White)
+                        Text(text = "dsadsad",color = Color.White)
+                    }
+                }
+
+
+
 
             }
 
@@ -152,7 +185,10 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
 
 @Composable
 fun BlurredImageExample(imageUrl: String) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(500.dp)
+    ) {
         // Ana resim (bulanık olmayan kısım)
         GlideImage(
             imageModel = { imageUrl },
@@ -164,7 +200,7 @@ fun BlurredImageExample(imageUrl: String) {
             requestBuilder = {
                 Glide.with(LocalContext.current)
                     .load(imageUrl)
-                    .apply(RequestOptions.bitmapTransform(jp.wasabeef.glide.transformations.BlurTransformation(25, 3)))
+                    .apply(RequestOptions.bitmapTransform(jp.wasabeef.glide.transformations.BlurTransformation(20, 3)))
             }
         )
 
@@ -174,7 +210,7 @@ fun BlurredImageExample(imageUrl: String) {
                 colors = listOf(
                     Color.Transparent, // Üst kısmı net
                     Color.Black.copy(alpha = 0.6f), // Ortada hafif bulanıklık
-                    Color.Black.copy(alpha = 0.8f), // Daha bulanık
+                    Color.Black.copy(alpha = 0.7f), // Daha bulanık
                     Color.Black // Alt kısım tamamen kaybolur
                 )
             )
@@ -191,70 +227,70 @@ fun FilmItem(film: Film) {
 
     film.data.lines.forEach { line ->
 
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+            ,
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    ,
-                contentAlignment = Alignment.Center
+                ,
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                // Image as the background
+                GlideImage(
+                    imageModel = { line.img }, // loading a network image using an URL.
+                    imageOptions = ImageOptions(
+                        // Resmi kutuya tam sığdır
+                        contentScale = ContentScale.Fit,
+                        alignment = Alignment.Center
+                    ),
                     modifier = Modifier
-                    ,
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .width(400.dp)
+                        .height(420.dp)
+                        .padding(top = 50.dp)
+
+                )
+                Log.d("API_LOG", "Image URL: ${line.img}")
+
+                Box(
+                    modifier = Modifier
+
+                        .width(410.dp)
+                        .height(50.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Image as the background
-                    GlideImage(
-                        imageModel = { line.img }, // loading a network image using an URL.
-                        imageOptions = ImageOptions(
-                            // Resmi kutuya tam sığdır
-                            contentScale = ContentScale.Fit,
-                            alignment = Alignment.Center
-                        ),
-                        modifier = Modifier
-                            .width(400.dp)
-                            .height(420.dp)
-                            .padding(top = 50.dp)
-
-                    )
-                    Log.d("API_LOG", "Image URL: ${line.img}")
-
                     Box(
                         modifier = Modifier
+                        ,
+                        contentAlignment = Alignment.Center // Hem yatay hem dikey ortalama
 
-                            .width(410.dp)
-                            .height(50.dp),
-                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
+
+                        Row(
                             modifier = Modifier
-                                ,
-                            contentAlignment = Alignment.Center // Hem yatay hem dikey ortalama
-
+                                .fillMaxWidth() // Row'u tam genişliğe yay
+                            ,
+                            horizontalArrangement = Arrangement.SpaceEvenly // Öğeler arasında eşit boşluk
                         ) {
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth() // Row'u tam genişliğe yay
-                                    ,
-                                horizontalArrangement = Arrangement.SpaceEvenly // Öğeler arasında eşit boşluk
-                            ) {
-                                Text(
-                                    text = line.sty.substringAfter("Tür:"), // "Tür:" ifadesinden sonrasını al
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = line.year
-                                        .substringAfter("Yapım:") // "Yapım:" ifadesinden sonrasını al
-                                        .substringBefore(" - "),  // " - " ifadesinden öncesini al
-                                    color = Color.White
-                                )
-                                Text(text = line.times.substringAfter("Süre:"), color = Color.White)
-                            }
+                            Text(
+                                text = line.sty.substringAfter("Tür:"), // "Tür:" ifadesinden sonrasını al
+                                color = Color.White
+                            )
+                            Text(
+                                text = line.year
+                                    .substringAfter("Yapım:") // "Yapım:" ifadesinden sonrasını al
+                                    .substringBefore(" - "),  // " - " ifadesinden öncesini al
+                                color = Color.White
+                            )
+                            Text(text = line.times.substringAfter("Süre:"), color = Color.White)
                         }
                     }
                 }
-                }
+            }
+        }
 
 
     }
@@ -305,8 +341,3 @@ fun FilmLazyRow(movieSuggestList: List<Film>) {
         }
     }
 }
-
-
-
-
-

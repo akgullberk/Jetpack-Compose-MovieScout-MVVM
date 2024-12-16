@@ -7,7 +7,7 @@ class ApiKeyInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val newRequest = originalRequest.newBuilder()
-            .addHeader("Authorization", "apikey 63rzaUT6tMCYIBXrqai0Im:3iMHvTKDpLs1OKX5MQaPWB")
+            .addHeader("Authorization", "apikey 1KbRWZfganjZljXk62qPqR:10u8o4LI8iB6oy6cGzyDfg")
             .addHeader("Content-Type", "application/json")
             .build()
         return chain.proceed(newRequest)
