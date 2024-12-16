@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.moviescout"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -89,7 +89,13 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.5.0")
     implementation ("com.squareup.okhttp3:okhttp:4.10.0")
 
-    implementation ("com.github.skydoves:landscapist-glide:1.4.4")
+    implementation("com.github.skydoves:landscapist-glide:2.4.4")
 
     implementation ("androidx.compose.foundation:foundation:1.5.0")
+
+    implementation ("dev.chrisbanes.snapper:snapper:0.3.0")
+
+    implementation("io.coil-kt:coil-compose:2.2.2")
+
+    implementation ("jp.wasabeef:glide-transformations:4.3.0")
 }
