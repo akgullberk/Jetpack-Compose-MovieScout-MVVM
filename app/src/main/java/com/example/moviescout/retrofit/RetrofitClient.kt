@@ -1,15 +1,16 @@
 package com.example.moviescout.retrofit
 
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitClient {
     companion object {
-        fun getClient(baseUrl:String) : Retrofit {
+        fun getClient(baseUrl:String, interceptor: Interceptor) : Retrofit {
             // OkHttpClient'e interceptor ekleniyor
             val client = OkHttpClient.Builder()
-                .addInterceptor(ApiKeyInterceptor()) // ApiKeyInterceptor burada ekleniyor
+                .addInterceptor(interceptor) // ApiKeyInterceptor burada ekleniyor
                 .build()
 
 
@@ -19,5 +20,7 @@ class RetrofitClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
+
+
     }
 }

@@ -3,6 +3,7 @@ package com.example.moviescout.uix.view
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -38,6 +40,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,7 +66,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
@@ -74,6 +79,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.moviescout.data.entity.Film
 import com.example.moviescout.data.entity.FilmLine
+import com.example.moviescout.data.entity.Movie
 import com.example.moviescout.uix.viewmodel.AnasayfaViewModel
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -95,12 +101,15 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
     val movieSuggestList by anasayfaViewModel.movieSuggestList.observeAsState(emptyList())
     val errorMessage by anasayfaViewModel.errorMessage.observeAsState("")
 
+
+
     // Kaydırma durumunu hatırlamak için bir ScrollState kullanıyoruz
     val scrollState = rememberScrollState()
 
     // Fetch news whenever the selected category changes
     LaunchedEffect(Unit) {
         anasayfaViewModel.fetchMovieSuggest()
+        anasayfaViewModel.fetchMoviesByGenre(35)
     }
 
 
@@ -137,16 +146,22 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
         }
 
     ) { paddingValues ->
-        // Ana arayüz alanı
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(0.dp)
-            .background(color = Color.Black)
-            ,
-        ) {
-            FilmLazyRow(movieSuggestList = movieSuggestList)
-        }
+
+            // Ana arayüz alanı
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(paddingValues)
+                .background(color = Color.Black)
+                ,
+            ) {
+                FilmLazyRow(movieSuggestList = movieSuggestList,anasayfaViewModel)
+
+
+
+            }
+
+
     }
 }
 
@@ -178,8 +193,8 @@ fun BlurredImageExample(imageUrl: String) {
             val gradientBrush = Brush.verticalGradient(
                 colors = listOf(
                     Color.Transparent, // Üst kısmı net
-                    Color.Black.copy(alpha = 0.4f), // Ortada hafif bulanıklık
-                    Color.Black.copy(alpha = 0.9f), // Daha bulanık
+                    Color.Black.copy(alpha = 0.6f), // Ortada hafif bulanıklık
+                    Color.Black.copy(alpha = 0.8f), // Daha bulanık
 
                 )
             )
@@ -196,12 +211,6 @@ fun FilmItem(film: Film) {
 
     film.data.lines.forEach { line ->
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-            ,
-            contentAlignment = Alignment.Center
-        ) {
             Column(
                 modifier = Modifier
                 ,
@@ -217,26 +226,22 @@ fun FilmItem(film: Film) {
                         alignment = Alignment.Center
                     ),
                     modifier = Modifier
-                        .width(400.dp)
-                        .height(420.dp)
+                        .height(400.dp)
                         .padding(top = 50.dp)
+                        .clip(RoundedCornerShape(3.dp)), // Köşeleri yuvarlama
 
                 )
-                Log.d("API_LOG", "Image URL: ${line.img}")
 
                 Box(
                     modifier = Modifier
 
                         .width(410.dp)
-                        .height(50.dp),
+                        .height(40.dp)
+
+
+                    ,
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                        ,
-                        contentAlignment = Alignment.Center // Hem yatay hem dikey ortalama
-
-                    ) {
 
                         Row(
                             modifier = Modifier
@@ -256,20 +261,21 @@ fun FilmItem(film: Film) {
                             )
                             Text(text = line.times.substringAfter("Süre:"), color = Color.White)
                         }
-                    }
+
                 }
             }
-        }
-
-
     }
 }
 
 @OptIn(ExperimentalSnapperApi::class)
 @Composable
-fun FilmLazyRow(movieSuggestList: List<Film>) {
+fun FilmLazyRow(movieSuggestList: List<Film>,anasayfaViewModel: AnasayfaViewModel) {
+
     val listState = rememberLazyListState()
     val snapperFlingBehavior = rememberSnapperFlingBehavior(lazyListState = listState)
+
+    val movieList by anasayfaViewModel.movieList.observeAsState(emptyList())
+
 
     // Track the current item index
     var currentItemIndex by remember { mutableStateOf(0) }
@@ -283,9 +289,11 @@ fun FilmLazyRow(movieSuggestList: List<Film>) {
     val backgroundImageUrl = movieSuggestList.getOrNull(currentItemIndex)?.data?.lines?.firstOrNull()?.img ?: ""
 
     // Yalnızca 7 film al
-    val limitedMovieSuggestList = movieSuggestList.take(7)
+    val limitedMovieSuggestList = movieSuggestList.take(8)
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()
+
+    ) {
         // Set background image dynamically as you scroll
         if (backgroundImageUrl.isNotEmpty()) {
             BlurredImageExample(imageUrl = backgroundImageUrl)
@@ -300,7 +308,7 @@ fun FilmLazyRow(movieSuggestList: List<Film>) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 16.dp), // Page Indicator için boşluk bırak
+                , // Page Indicator için boşluk bırak
             verticalArrangement = Arrangement.Bottom
         ) {
             // Film LazyRow
@@ -309,7 +317,7 @@ fun FilmLazyRow(movieSuggestList: List<Film>) {
                 flingBehavior = snapperFlingBehavior,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(500.dp),
+                    .height(455.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(limitedMovieSuggestList) { film ->
@@ -317,28 +325,68 @@ fun FilmLazyRow(movieSuggestList: List<Film>) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Çizgi şeklindeki Page Indicator
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                ,
                 horizontalArrangement = Arrangement.Center
             ) {
                 repeat(limitedMovieSuggestList.size) { index ->
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 2.dp)
+                            .padding(horizontal = 3.dp)
                             .height(4.dp) // Çizgi yüksekliği
                             .width(24.dp) // Tüm çubuklar aynı genişlikte
                             .background(
                                 color = if (index == currentItemIndex) Color(0xFFFFD700) else Color.White,
-                                shape = RoundedCornerShape(50) // Yuvarlatılmış köşeler
                             )
                     )
                 }
             }
+
+            Column(
+                modifier = Modifier
+                    .padding(top = 30.dp,)
+            ){
+                Text(text = "VİZYONDAKİ FİLMLER",color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(start = 20.dp) )
+                FilmNamesList(movieList = movieList )
+
+            }
         }
     }
 }
+
+@Composable
+fun FilmNamesList(movieList: List<Movie>) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+
+    ) {
+        itemsIndexed(movieList) { index,movie ->
+            // Image as the background
+            GlideImage(
+                imageModel = {"https://image.tmdb.org/t/p/w500/${movie.poster_path}"}, // loading a network image using an URL.
+                imageOptions = ImageOptions(
+                    // Resmi kutuya tam sığdır
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.Center
+                ),
+                modifier = Modifier
+                    .height(180.dp)
+                    .width(140.dp)
+                    .padding(start = if (index == 0) 20.dp else 8.dp) // İlk öğeye 30.dp padding ekle
+                    .clip(RoundedCornerShape(3.dp)), // Köşeleri yuvarlama
+
+
+            )
+        }
+    }
+}
+
+
+
