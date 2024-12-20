@@ -110,6 +110,8 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
     LaunchedEffect(Unit) {
         anasayfaViewModel.fetchMovieSuggest()
         anasayfaViewModel.fetchMoviesByGenre(35)
+        anasayfaViewModel.fetchMoviesByGenre(28)
+
     }
 
 
@@ -156,7 +158,6 @@ fun Anasayfa(anasayfaViewModel: AnasayfaViewModel){
                 ,
             ) {
                 FilmLazyRow(movieSuggestList = movieSuggestList,anasayfaViewModel)
-
 
 
             }
@@ -274,7 +275,7 @@ fun FilmLazyRow(movieSuggestList: List<Film>,anasayfaViewModel: AnasayfaViewMode
     val listState = rememberLazyListState()
     val snapperFlingBehavior = rememberSnapperFlingBehavior(lazyListState = listState)
 
-    val movieList by anasayfaViewModel.movieList.observeAsState(emptyList())
+    val genre35Movies by anasayfaViewModel.moviesByGenre[35]?.observeAsState(emptyList()) ?: remember { mutableStateOf(emptyList()) }
 
 
     // Track the current item index
@@ -351,8 +352,8 @@ fun FilmLazyRow(movieSuggestList: List<Film>,anasayfaViewModel: AnasayfaViewMode
                 modifier = Modifier
                     .padding(top = 30.dp,)
             ){
-                Text(text = "VİZYONDAKİ FİLMLER",color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(start = 20.dp) )
-                FilmNamesList(movieList = movieList )
+                Text(text = "AKSİYON",color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(start = 20.dp) )
+                FilmNamesList(movieList = genre35Movies )
 
             }
         }
@@ -387,6 +388,8 @@ fun FilmNamesList(movieList: List<Movie>) {
         }
     }
 }
+
+
 
 
 
